@@ -3,6 +3,7 @@
 ReceptionAI (virtual receptionist mascot **Bloomie**) is a premium, virtual receptionist MVP built for dental studios, boutique spas, and small businesses. It answers incoming phone calls, processes customer messages (Web Chat, SMS, WhatsApp, Instagram), replies to FAQs dynamically, classifies incoming requests by urgency, and manages escalations in a gorgeous, cutesy, Pinterest-style pastel SaaS command center.
 
 ---
+![Uploading image.png…]()
 
 ## Features 🍬
 
