@@ -4,6 +4,13 @@ ReceptionAI (virtual receptionist mascot **Bloomie**) is a premium, virtual rece
 
 ---
 <img width="959" height="419" alt="image" src="https://github.com/user-attachments/assets/0d4b7959-e094-4435-9399-398e581c61d5" />
+<img width="959" height="274" alt="image" src="https://github.com/user-attachments/assets/621c88b9-f2b2-4d4f-b255-cc33449c1cb3" />
+<img width="957" height="412" alt="image" src="https://github.com/user-attachments/assets/5993143c-71dd-4b9e-bb3d-5dd90189f5f5" />
+<img width="959" height="414" alt="image" src="https://github.com/user-attachments/assets/4f4066dd-3028-4a02-99ba-e36944518865" />
+<img width="957" height="408" alt="image" src="https://github.com/user-attachments/assets/e94527a8-dee4-4ace-90ba-0448ea0f29b0" />
+<img width="959" height="408" alt="image" src="https://github.com/user-attachments/assets/2cff9f38-9208-4ab1-a3fd-46dd09763534" />
+<img width="959" height="409" alt="image" src="https://github.com/user-attachments/assets/0fd87ce9-50cc-4e6a-abbb-b457f69c6c98" />
+
 
 ## Features 🍬
 
