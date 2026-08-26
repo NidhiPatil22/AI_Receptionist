@@ -30,3 +30,4 @@ app.listen(env.PORT, () => {
 });
 
 export default app;
+// trigger restart nodemon

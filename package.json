@@ -10,8 +10,8 @@
     "db:migrate": "npx prisma migrate dev --name init",
     "db:seed": "npx ts-node prisma/seed.ts",
     "db:setup": "npx prisma migrate dev --name init && npx prisma db seed",
-    "build:client": "npm run build --prefix client",
-    "build:server": "npm run build --prefix server",
+    "build:client": "npm install --prefix client && npm run build --prefix client",
+    "build:server": "npm install --prefix server && npm run build --prefix server",
     "build": "npm run build:client && npm run build:server"
   },
   "prisma": {
