@@ -15,6 +15,13 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', time: new Date() });
 });
 
+app.get('/healthz', (req, res) => {
+  res.json({
+    status: "ok",
+    message: "ReceptionAI backend is running"
+  });
+});
+
 // Mount API routes
 app.use('/api', apiRouter);
 
