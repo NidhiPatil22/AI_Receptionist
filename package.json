@@ -1,0 +1,26 @@
+{
+  "name": "reception-ai-root",
+  "version": "1.0.0",
+  "description": "ReceptionAI: A virtual AI receptionist for small businesses",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && npm install --prefix client && npm install --prefix server",
+    "dev": "concurrently -n \"client,server\" -c \"pink,lavender\" \"npm run dev --prefix client\" \"npm run dev --prefix server\"",
+    "db:generate": "npx prisma generate",
+    "db:migrate": "npx prisma migrate dev --name init",
+    "db:seed": "npx ts-node prisma/seed.ts",
+    "db:setup": "npx prisma migrate dev --name init && npx prisma db seed",
+    "build:client": "npm run build --prefix client",
+    "build:server": "npm run build --prefix server",
+    "build": "npm run build:client && npm run build:server"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "prisma": "^5.10.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}

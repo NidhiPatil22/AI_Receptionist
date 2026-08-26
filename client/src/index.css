@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  --font-display: 'Fredoka', cursive, sans-serif;
+
+  /* Pastel Theme Colors */
+  --color-cream-bg: #FAF6F0;
+  --color-surface-card: #FFFBF7;
+  --color-pastel-lavender: #E8DFF5;
+  --color-pastel-blue: #D0E1FD;
+  --color-pastel-pink: #FCE1E4;
+  --color-pastel-blush: #FFE5EC;
+  --color-pastel-lilac: #E4C1F9;
+  --color-pastel-peach: #FCEADE;
+  --color-pastel-yellow: #FCF6BD;
+  --color-charcoal-plum: #2E1E38;
+  --color-charcoal-light: #52405A;
+
+  /* Custom Transitions & Shadows */
+  --shadow-soft-card: 0 8px 30px rgba(74, 58, 82, 0.05);
+  --shadow-cute-border: 0 4px 0px 0px #2E1E38;
+
+  /* Animations */
+  --animate-float: float 4s ease-in-out infinite;
+  --animate-breath: breath 3s ease-in-out infinite;
+  --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Custom Keyframe Definitions */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes breath {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+/* Custom Scrollbar for cute aesthetic */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #FAF6F0;
+}
+::-webkit-scrollbar-thumb {
+  background: #E8DFF5;
+  border-radius: 9999px;
+  border: 2px solid #FAF6F0;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #D9D2EC;
+}
+
+/* Typography styles */
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display);
+}
+
+/* Page transitions / subtle fade loads */
+.fade-in-load {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

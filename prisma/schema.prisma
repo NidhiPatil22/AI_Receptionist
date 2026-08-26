@@ -1,0 +1,130 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Business {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  phone       String?
+  email       String?
+  website     String?
+  address     String?
+  industry    String?
+  services    String?  // Store as string list or plain text
+  pricing     String?  // Store pricing notes
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users         User[]
+  faqs          FAQ[]
+  businessHours BusinessHours[]
+  conversations Conversation[]
+}
+
+model User {
+  id         String   @id @default(uuid())
+  email      String   @unique
+  password   String
+  name       String
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model FAQ {
+  id         String   @id @default(uuid())
+  question   String
+  answer     String
+  category   String   // e.g., "Hours", "Pricing", "Services"
+  active     Boolean  @default(true)
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model BusinessHours {
+  id         String   @id @default(uuid())
+  dayOfWeek  String   // "Monday", "Tuesday", etc.
+  openTime   String   // "09:00"
+  closeTime  String   // "18:00"
+  isClosed   Boolean  @default(false)
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([businessId, dayOfWeek])
+}
+
+model Conversation {
+  id            String   @id @default(uuid())
+  customerName  String?
+  customerPhone String?
+  customerEmail String?
+  channel       String   // "chat" (web), "sms", "whatsapp", "instagram", "call"
+  status        String   // "active", "resolved", "paused"
+  urgency       String   // "normal", "important", "urgent"
+  urgencyReason String?
+  requiresHuman Boolean  @default(false)
+  lastMessageAt DateTime @default(now())
+  businessId    String
+  business      Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  messages      Message[]
+  calls         Call[]
+  notifications Notification[]
+  escalations   Escalation[]
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  sender         String       // "customer", "ai", "human"
+  content        String
+  timestamp      DateTime     @default(now())
+  isNote         Boolean      @default(false) // For internal notes by human agent
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+}
+
+model Call {
+  id             String       @id @default(uuid())
+  duration       Int          @default(0) // In seconds
+  status         String       // "completed", "missed", "ringing", "in-progress"
+  recordingUrl   String?
+  transcript     String?      // Store full call text dialogue
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+}
+
+model Notification {
+  id             String       @id @default(uuid())
+  type           String       // "urgent_conversation", "missed_call", "new_message", "ai_escalation", "ai_failed"
+  title          String
+  message        String
+  isRead         Boolean      @default(false)
+  conversationId String?
+  conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+}
+
+model Escalation {
+  id             String       @id @default(uuid())
+  reason         String
+  status         String       // "pending", "resolved"
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  resolvedAt     DateTime?
+}
