@@ -5,7 +5,7 @@
   "main": "dist/app.js",
   "scripts": {
     "dev": "nodemon src/app.ts",
-    "build": "npx prisma generate --schema=../prisma/schema.prisma && tsc",
+    "build": "node -e \"const fs = require('fs'); fs.mkdirSync('prisma', { recursive: true }); fs.copyFileSync('../prisma/schema.prisma', 'prisma/schema.prisma');\" && npx prisma generate --schema=prisma/schema.prisma && tsc",
     "start": "node dist/app.js"
   },
   "dependencies": {
@@ -24,6 +24,7 @@
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20.11.20",
     "nodemon": "^3.1.0",
+    "prisma": "^5.10.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   }
