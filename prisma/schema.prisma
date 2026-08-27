@@ -18,6 +18,12 @@ model Business {
   industry    String?
   services    String?  // Store as string list or plain text
   pricing     String?  // Store pricing notes
+  receptionistName    String   @default("Bloomie")
+  receptionistActive  Boolean  @default(true)
+  voiceEnabled        Boolean  @default(true)
+  messagingEnabled    Boolean  @default(true)
+  autoAnswer          Boolean  @default(true)
+  humanEscalation     Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

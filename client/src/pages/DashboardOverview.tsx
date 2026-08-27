@@ -16,30 +16,40 @@ export const DashboardOverview: React.FC = () => {
     totalCalls: 0,
     missedCalls: 0,
     totalMessages: 0,
-    aiHandlingRate: 94,
+    aiHandlingRate: 100,
     avgResponseTime: '2.4s',
   });
   const [loading, setLoading] = useState(true);
   const [businessName, setBusinessName] = useState('Bloom Dental Studio');
+  const [ownerName, setOwnerName] = useState('Dr. Sarah Bloom');
+  const [receptionistName, setReceptionistName] = useState('Bloomie');
+  const [receptionistActive, setReceptionistActive] = useState(true);
 
   const fetchData = async () => {
     try {
-      // Load business name
-      const bizData = localStorage.getItem('reception_business');
-      if (bizData) {
-        setBusinessName(JSON.parse(bizData).name);
+      // Load user details cache
+      const userData = localStorage.getItem('reception_user');
+      if (userData) {
+        setOwnerName(JSON.parse(userData).name);
       }
 
-      // Fetch conversations, notifications, analytics
-      const [convList, alerts, metrics] = await Promise.all([
+      // Fetch conversations, notifications, analytics, and settings
+      const [convList, alerts, metrics, bizProfile] = await Promise.all([
         api.conversations.list(),
         api.notifications.list(),
         api.analytics.get(),
+        api.business.getProfile(),
       ]);
 
       setConversations(convList.slice(0, 5)); // Show top 5 recent
       setNotifications(alerts.slice(0, 4)); // Show recent alerts
       setStats(metrics.stats);
+      if (bizProfile) {
+        setBusinessName(bizProfile.name);
+        setReceptionistName(bizProfile.receptionistName || 'Bloomie');
+        setReceptionistActive(bizProfile.receptionistActive ?? true);
+        localStorage.setItem('reception_business', JSON.stringify(bizProfile));
+      }
     } catch (err) {
       console.error('Failed to load dashboard overview data:', err);
     } finally {
@@ -102,16 +112,23 @@ export const DashboardOverview: React.FC = () => {
       <div className="bg-gradient-to-r from-[#E8DFF5] to-[#FFE5EC] border-2 border-[#2E1E38] rounded-3xl p-6 md:p-8 relative shadow-soft-card overflow-hidden flex flex-col md:flex-row items-center gap-6">
         <div className="relative z-10 flex-1 text-center md:text-left space-y-2.5">
           <h1 className="font-display text-2xl md:text-3.5xl text-[#2E1E38] leading-tight">
-            Dr. Bloom's Command Center ✨
+            {ownerName}'s Command Center ✨
           </h1>
           <p className="text-sm font-semibold text-[#52405A] max-w-xl">
-            Good morning! Your receptionist, <strong>Bloomie</strong>, is currently online and active. She has handled {stats.totalConversations} customer chats today with a {stats.aiHandlingRate}% auto-resolution rate.
+            Good morning! Your receptionist, <strong>{receptionistName}</strong>, is currently {receptionistActive ? 'online and active' : 'paused/offline'}. She has handled {stats.totalConversations ?? 0} customer chats today with a {stats.aiHandlingRate ?? 100}% auto-resolution rate.
           </p>
           <div className="flex flex-wrap gap-2.5 justify-center md:justify-start pt-2">
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white border border-[#2E1E38] text-xs font-bold text-green-600 shadow-sm">
-              <span className="w-2.5 h-2.5 rounded-full bg-green-400 animate-ping" />
-              🟢 Active Online
-            </span>
+            {receptionistActive ? (
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white border border-[#2E1E38] text-xs font-bold text-green-600 shadow-sm">
+                <span className="w-2.5 h-2.5 rounded-full bg-green-400 animate-ping" />
+                🟢 Active Online
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white border border-[#2E1E38] text-xs font-bold text-amber-600 shadow-sm">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                🟡 Paused / Offline
+              </span>
+            )}
             <Link
               to="/dashboard/receptionist"
               className="inline-flex items-center gap-1 px-4 py-1.5 rounded-full bg-[#2E1E38] text-white hover:bg-[#52405A] text-xs font-bold transition-all shadow-sm"
@@ -122,17 +139,17 @@ export const DashboardOverview: React.FC = () => {
         </div>
 
         <div className="w-36 h-36 flex items-center justify-center p-2 bg-white/40 rounded-3xl border border-white/60 shadow-inner">
-          <Mascot state="happy" size={110} />
+          <Mascot state={receptionistActive ? "happy" : "idle"} size={110} />
         </div>
       </div>
 
       {/* Pastel Overview Statistics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { title: 'Conversations Today', val: stats.totalConversations || 15, col: 'bg-[#D0E1FD]', sub: 'Calls and DMs handled' },
-          { title: 'AI Handled Rate', val: `${stats.aiHandlingRate || 94}%`, col: 'bg-[#FCF6BD]', sub: 'No human steps needed' },
-          { title: 'Urgent Alerts', val: stats.urgentConversations || 3, col: 'bg-[#FCE1E4] text-red-900 border-red-300', sub: 'Require your review' },
-          { title: 'Total Calls Answered', val: stats.totalCalls || 5, col: 'bg-[#E8DFF5]', sub: 'Simulated voice logs' },
+          { title: 'Conversations Today', val: stats.totalConversations ?? 0, col: 'bg-[#D0E1FD]', sub: 'Calls and DMs handled' },
+          { title: 'AI Handled Rate', val: `${stats.aiHandlingRate ?? 100}%`, col: 'bg-[#FCF6BD]', sub: 'No human steps needed' },
+          { title: 'Urgent Alerts', val: stats.urgentConversations ?? 0, col: 'bg-[#FCE1E4] text-red-900 border-red-300', sub: 'Require your review' },
+          { title: 'Total Calls Answered', val: stats.totalCalls ?? 0, col: 'bg-[#E8DFF5]', sub: 'Simulated voice logs' },
         ].map((item, idx) => (
           <div key={idx} className={`${item.col} border-2 border-[#2E1E38] rounded-2xl p-5 shadow-sm`}>
             <div className="text-xs font-bold uppercase tracking-wider text-[#2E1E38]/60 mb-1">{item.title}</div>

@@ -63,10 +63,10 @@ export const AnalyticsPage: React.FC = () => {
       {/* Stats Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Conversations Handled', value: stats?.totalConversations || 15, sub: 'Total phone/chats' },
-          { label: 'AI Auto-Response Rate', value: `${stats?.aiHandlingRate || 94}%`, sub: 'No human steps needed' },
+          { label: 'Conversations Handled', value: stats?.totalConversations ?? 0, sub: 'Total phone/chats' },
+          { label: 'AI Auto-Response Rate', value: `${stats?.aiHandlingRate ?? 100}%`, sub: 'No human steps needed' },
           { label: 'Avg AI Response Speed', value: '2.4s', sub: 'Instant receptionist time' },
-          { label: 'Urgency Escalations', value: stats?.escalationsCount || 3, sub: 'Required human takeover' },
+          { label: 'Urgency Escalations', value: stats?.escalationsCount ?? 0, sub: 'Required human takeover' },
         ].map((item, idx) => (
           <div key={idx} className="bg-[#FFFBF7] border-2 border-[#2E1E38] rounded-2xl p-5 shadow-sm">
             <span className="text-[10px] font-bold text-[#A582B8] uppercase tracking-wider block mb-1">

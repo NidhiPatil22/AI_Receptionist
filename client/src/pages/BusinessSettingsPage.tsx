@@ -18,6 +18,7 @@ export const BusinessSettingsPage: React.FC = () => {
   const [address, setAddress] = useState('');
   const [services, setServices] = useState('');
   const [pricing, setPricing] = useState('');
+  const [industry, setIndustry] = useState('');
 
   // Weekly Hours Form State
   const [hoursList, setHoursList] = useState<BusinessHours[]>([]);
@@ -33,6 +34,7 @@ export const BusinessSettingsPage: React.FC = () => {
       setAddress(biz.address || '');
       setServices(biz.services || '');
       setPricing(biz.pricing || '');
+      setIndustry(biz.industry || '');
       
       // Standard ordering for days
       const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -64,6 +66,7 @@ export const BusinessSettingsPage: React.FC = () => {
         address,
         services,
         pricing,
+        industry,
       });
       // Update local storage business object
       localStorage.setItem('reception_business', JSON.stringify(data));
@@ -145,9 +148,9 @@ export const BusinessSettingsPage: React.FC = () => {
               <input
                 type="text"
                 placeholder="e.g. Healthcare / Dentistry"
-                value={name.includes('Dental') ? 'Healthcare / Dental' : 'General Service'}
-                disabled
-                className="w-full px-4 py-2.5 rounded-full border border-gray-300 bg-gray-100 text-xs text-[#8C7B93] focus:outline-none"
+                value={industry}
+                onChange={(e) => setIndustry(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-full border-2 border-[#2E1E38] bg-white text-xs text-[#2E1E38] focus:outline-none"
               />
             </div>
           </div>

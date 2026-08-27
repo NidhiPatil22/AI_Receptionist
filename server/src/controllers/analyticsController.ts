@@ -48,43 +48,77 @@ export const analyticsController = {
       });
 
       // Simulated timeline details
-      const callsOverTime = [
-        { date: 'Aug 20', calls: 4 },
-        { date: 'Aug 21', calls: 7 },
-        { date: 'Aug 22', calls: 5 },
-        { date: 'Aug 23', calls: 8 },
-        { date: 'Aug 24', calls: 6 },
-        { date: 'Aug 25', calls: 9 },
-        { date: 'Aug 26', calls: totalCalls || 10 },
-      ];
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-      const messagesOverTime = [
-        { date: 'Aug 20', messages: 18 },
-        { date: 'Aug 21', messages: 24 },
-        { date: 'Aug 22', messages: 21 },
-        { date: 'Aug 23', messages: 32 },
-        { date: 'Aug 24', messages: 28 },
-        { date: 'Aug 25', messages: 35 },
-        { date: 'Aug 26', messages: totalMessages || 40 },
-      ];
+      const lastSevenDaysCalls = await prisma.call.findMany({
+        where: {
+          conversation: { businessId },
+          createdAt: { gte: sevenDaysAgo }
+        }
+      });
+
+      const lastSevenDaysMessages = await prisma.message.findMany({
+        where: {
+          conversation: { businessId },
+          createdAt: { gte: sevenDaysAgo }
+        }
+      });
+
+      // Group calls and messages by day (past 7 days)
+      const callsMap: { [dateStr: string]: number } = {};
+      const messagesMap: { [dateStr: string]: number } = {};
+
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        callsMap[dateStr] = 0;
+        messagesMap[dateStr] = 0;
+      }
+
+      lastSevenDaysCalls.forEach((c: any) => {
+        const dateStr = new Date(c.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        if (callsMap[dateStr] !== undefined) {
+          callsMap[dateStr]++;
+        }
+      });
+
+      lastSevenDaysMessages.forEach((m: any) => {
+        const dateStr = new Date(m.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        if (messagesMap[dateStr] !== undefined) {
+          messagesMap[dateStr]++;
+        }
+      });
+
+      const callsOverTime = Object.keys(callsMap).map(date => ({
+        date,
+        calls: callsMap[date]
+      }));
+
+      const messagesOverTime = Object.keys(messagesMap).map(date => ({
+        date,
+        messages: messagesMap[date]
+      }));
 
       const channelsData = [
-        { name: 'Website Chat', value: channelWeb || 5 },
-        { name: 'SMS Texting', value: channelSMS || 4 },
-        { name: 'WhatsApp', value: channelWhatsApp || 3 },
-        { name: 'Instagram DM', value: channelInsta || 2 },
-        { name: 'Phone Voice', value: channelCall || 6 },
+        { name: 'Website Chat', value: channelWeb },
+        { name: 'SMS Texting', value: channelSMS },
+        { name: 'WhatsApp', value: channelWhatsApp },
+        { name: 'Instagram DM', value: channelInsta },
+        { name: 'Phone Voice', value: channelCall },
       ];
 
       const handlingData = [
-        { name: 'AI Auto-Answered', value: aiMessages || 34 },
-        { name: 'Human Takeover', value: humanAgentMessages || 8 },
+        { name: 'AI Auto-Answered', value: aiMessages },
+        { name: 'Human Takeover', value: humanAgentMessages },
       ];
 
+      const normalcyCount = totalConversations - urgentConversations - importantConversations;
       const urgencyDistribution = [
-        { name: 'Normal Queries', value: (totalConversations - urgentConversations - importantConversations) || 10 },
-        { name: 'Important (Booking etc.)', value: importantConversations || 3 },
-        { name: 'Urgent Alert Escalated', value: urgentConversations || 2 },
+        { name: 'Normal Queries', value: normalcyCount >= 0 ? normalcyCount : 0 },
+        { name: 'Important (Booking etc.)', value: importantConversations },
+        { name: 'Urgent Alert Escalated', value: urgentConversations },
       ];
 
       return res.json({
@@ -100,7 +134,7 @@ export const analyticsController = {
           customerMessagesCount: customerMessages,
           escalationsCount,
           avgResponseTime: '2.4s (AI) / 4.8m (Human)',
-          aiHandlingRate: totalConversations ? Math.round(( (totalConversations - escalationsCount) / totalConversations) * 100) : 94,
+          aiHandlingRate: totalConversations ? Math.round(((totalConversations - escalationsCount) / totalConversations) * 100) : 100,
         },
         charts: {
           callsOverTime,

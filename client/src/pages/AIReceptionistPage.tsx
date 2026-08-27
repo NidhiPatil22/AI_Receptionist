@@ -11,6 +11,8 @@ export const AIReceptionistPage: React.FC = () => {
   const [messagingEnabled, setMessagingEnabled] = useState(true);
   const [autoAnswer, setAutoAnswer] = useState(true);
   const [humanEscalation, setHumanEscalation] = useState(true);
+  const [receptionistName, setReceptionistName] = useState('Bloomie');
+  const [businessName, setBusinessName] = useState('Bloom Dental Studio');
 
   // Simulation states
   const [activeTab, setActiveTab] = useState<'chat' | 'call'>('chat');
@@ -24,28 +26,58 @@ export const AIReceptionistPage: React.FC = () => {
   const [timerInterval, setTimerInterval] = useState<any>(null);
 
   // Chat simulation specific
-  const [chatMessages, setChatMessages] = useState<{ sender: 'customer' | 'ai'; content: string }[]>([
-    { sender: 'ai', content: "Hi! I'm Bloomie, your virtual assistant. How can I help you today? ♡" }
-  ]);
+  const [chatMessages, setChatMessages] = useState<{ sender: 'customer' | 'ai'; content: string }[]>([]);
+  
+  useEffect(() => {
+    setChatMessages([
+      { sender: 'ai', content: `Hi! I'm ${receptionistName}, your virtual assistant. How can I help you today? ♡` }
+    ]);
+  }, [receptionistName]);
   
   const [inputText, setInputText] = useState('');
   const [mascotState, setMascotState] = useState<'idle' | 'thinking' | 'speaking' | 'listening' | 'happy'>('idle');
   const [businessId, setBusinessId] = useState('');
 
   useEffect(() => {
-    const biz = localStorage.getItem('reception_business');
-    if (biz) {
-      setBusinessId(JSON.parse(biz).id);
-    }
+    const fetchConfigs = async () => {
+      try {
+        const biz = await api.business.getProfile();
+        setReceptionistActive(biz.receptionistActive ?? true);
+        setVoiceEnabled(biz.voiceEnabled ?? true);
+        setMessagingEnabled(biz.messagingEnabled ?? true);
+        setAutoAnswer(biz.autoAnswer ?? true);
+        setHumanEscalation(biz.humanEscalation ?? true);
+        setReceptionistName(biz.receptionistName || 'Bloomie');
+        setBusinessName(biz.name || 'Bloom Dental Studio');
+        setBusinessId(biz.id);
+      } catch (err) {
+        console.error('Failed to load receptionist configurations:', err);
+      }
+    };
+    fetchConfigs();
   }, []);
 
-  const handleToggle = (setter: React.Dispatch<React.SetStateAction<boolean>>) => {
-    setter(prev => !prev);
-    confetti({
-      particleCount: 15,
-      spread: 20,
-      colors: ['#E4C1F9', '#FCF6BD'],
-    });
+  const handleToggle = async (
+    field: 'receptionistActive' | 'voiceEnabled' | 'messagingEnabled' | 'autoAnswer' | 'humanEscalation',
+    currentValue: boolean,
+    setter: React.Dispatch<React.SetStateAction<boolean>>
+  ) => {
+    const newValue = !currentValue;
+    setter(newValue);
+    try {
+      const data = await api.business.updateProfile({
+        [field]: newValue
+      });
+      localStorage.setItem('reception_business', JSON.stringify(data));
+      confetti({
+        particleCount: 15,
+        spread: 20,
+        colors: ['#E4C1F9', '#FCF6BD'],
+      });
+    } catch (err) {
+      console.error(`Failed to update toggle ${field}:`, err);
+      setter(currentValue); // Revert on error
+    }
   };
 
   // --- Chat Simulation ---
@@ -100,8 +132,8 @@ export const AIReceptionistPage: React.FC = () => {
         setCallStatus('connected');
         setMascotState('speaking');
         
-        const initialText = "Hello, thanks for calling Bloom Dental Studio. My name is Bloomie. How can I help you today?";
-        setCallTranscript(prev => [...prev, `🤖 Bloomie: ${initialText}`]);
+        const initialText = `Hello, thanks for calling ${businessName}. My name is ${receptionistName}. How can I help you today?`;
+        setCallTranscript(prev => [...prev, `🤖 ${receptionistName}: ${initialText}`]);
         
         // Start duration timer
         const interval = setInterval(() => {
@@ -142,7 +174,7 @@ export const AIReceptionistPage: React.FC = () => {
       });
 
       setTimeout(() => {
-        setCallTranscript(prev => [...prev, `🤖 Bloomie: ${response.aiVoiceReply}`]);
+        setCallTranscript(prev => [...prev, `🤖 ${receptionistName}: ${response.aiVoiceReply}`]);
         setMascotState('speaking');
         setTimeout(() => setMascotState('idle'), 3000);
       }, 800);
@@ -184,14 +216,38 @@ export const AIReceptionistPage: React.FC = () => {
           </div>
           
           <div className="space-y-1">
-            <h3 className="font-display text-xl text-[#2E1E38]">Meet Bloomie ♡</h3>
+            <h3 className="font-display text-xl text-[#2E1E38]">Meet {receptionistName} ♡</h3>
             <p className="text-xs font-semibold text-[#8C7B93] max-w-xs mx-auto">
               I'm your virtual front desk receptionist. I answer calls and reply to messages while you focus on your business.
             </p>
           </div>
 
+          <div className="w-full max-w-xs pt-1.5 flex gap-2">
+            <input
+              type="text"
+              value={receptionistName}
+              onChange={(e) => setReceptionistName(e.target.value)}
+              placeholder="Change name..."
+              className="flex-1 px-3.5 py-1.5 rounded-full border-2 border-[#2E1E38] text-[10px] font-bold text-[#2E1E38] focus:outline-none bg-white"
+            />
+            <button
+              onClick={async () => {
+                try {
+                  const data = await api.business.updateProfile({ receptionistName });
+                  localStorage.setItem('reception_business', JSON.stringify(data));
+                  confetti({ particleCount: 20, spread: 30, colors: ['#E4C1F9', '#FCF6BD'] });
+                } catch (err) {
+                  console.error('Failed to update receptionist name:', err);
+                }
+              }}
+              className="px-3.5 py-1.5 rounded-full bg-[#E4C1F9] border-2 border-[#2E1E38] text-[10px] font-bold text-[#2E1E38] hover:bg-[#D9D2EC] active:translate-y-[1px] transition-all cursor-pointer"
+            >
+              Update Name ✨
+            </button>
+          </div>
+
           <div className="inline-flex items-center gap-1.5 px-4.5 py-1 rounded-full bg-[#E8DFF5] border border-[#2E1E38] text-xs font-bold">
-            <Sparkles className="w-3.5 h-3.5" /> status: online & active
+            <Sparkles className="w-3.5 h-3.5" /> status: {receptionistActive ? 'online & active' : 'paused / offline'}
           </div>
         </div>
 
@@ -200,15 +256,18 @@ export const AIReceptionistPage: React.FC = () => {
           <h4 className="font-display text-lg text-[#2E1E38]">Receptionist Configuration</h4>
           <div className="space-y-3.5 text-sm font-semibold text-[#52405A]">
             {[
-              { label: 'Enable AI Receptionist', state: receptionistActive, setter: setReceptionistActive },
-              { label: 'Voice calling active', state: voiceEnabled, setter: setVoiceEnabled },
-              { label: 'Messaging channels active', state: messagingEnabled, setter: setMessagingEnabled },
-              { label: 'Auto-answer instant reply', state: autoAnswer, setter: setAutoAnswer },
-              { label: 'Human escalation triggers', state: humanEscalation, setter: setHumanEscalation },
+              { label: 'Enable AI Receptionist', state: receptionistActive, field: 'receptionistActive', setter: setReceptionistActive },
+              { label: 'Voice calling active', state: voiceEnabled, field: 'voiceEnabled', setter: setVoiceEnabled },
+              { label: 'Messaging channels active', state: messagingEnabled, field: 'messagingEnabled', setter: setMessagingEnabled },
+              { label: 'Auto-answer instant reply', state: autoAnswer, field: 'autoAnswer', setter: setAutoAnswer },
+              { label: 'Human escalation triggers', state: humanEscalation, field: 'humanEscalation', setter: setHumanEscalation },
             ].map((config, index) => (
               <div key={index} className="flex items-center justify-between">
                 <span>{config.label}</span>
-                <button onClick={() => handleToggle(config.setter)} className="focus:outline-none">
+                <button 
+                  onClick={() => handleToggle(config.field as any, config.state, config.setter)} 
+                  className="focus:outline-none cursor-pointer"
+                >
                   {config.state ? (
                     <ToggleRight className="w-10 h-10 text-[#A582B8]" />
                   ) : (
@@ -255,7 +314,7 @@ export const AIReceptionistPage: React.FC = () => {
                     className={`flex flex-col ${msg.sender === 'customer' ? 'items-start' : 'items-end'}`}
                   >
                     <span className="text-[9px] font-bold text-[#A582B8] uppercase mb-1">
-                      {msg.sender === 'customer' ? '👤 Customer' : '🤖 Bloomie'}
+                      {msg.sender === 'customer' ? '👤 Customer' : `🤖 ${receptionistName}`}
                     </span>
                     <div
                       className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-xs font-semibold leading-relaxed border-2 border-[#2E1E38] ${
