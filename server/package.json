@@ -5,7 +5,7 @@
   "main": "dist/app.js",
   "scripts": {
     "dev": "nodemon src/app.ts",
-    "build": "node -e \"const fs = require('fs'); fs.mkdirSync('prisma', { recursive: true }); fs.copyFileSync('../prisma/schema.prisma', 'prisma/schema.prisma');\" && npx prisma generate --schema=prisma/schema.prisma && tsc",
+    "build": "node -e \"const fs = require('fs'); fs.mkdirSync('prisma', { recursive: true }); fs.copyFileSync('../prisma/schema.prisma', 'prisma/schema.prisma');\" && npx prisma generate --schema=prisma/schema.prisma && tsc && (node -e \"if(process.env.RENDER) { const { execSync } = require('child_process'); console.log('🚀 Running Render production DB push...'); execSync('npx prisma db push', { stdio: 'inherit' }); console.log('🌱 Seeding production database...'); execSync('npx prisma db seed', { stdio: 'inherit' }); }\")",
     "start": "node dist/app.js"
   },
   "dependencies": {
@@ -27,5 +27,8 @@
     "prisma": "^5.10.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
+  },
+  "prisma": {
+    "seed": "node ../prisma/seed.js"
   }
 }

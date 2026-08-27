@@ -51,8 +51,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode }) => {
       localStorage.setItem('reception_user', JSON.stringify(data.user));
       localStorage.setItem('reception_business', JSON.stringify(data.business));
       navigate('/dashboard');
-    } catch (err) {
-      setError('Could not establish simulation session.');
+    } catch (err: any) {
+      setError(err.message || 'Could not establish simulation session.');
     } finally {
       setLoading(false);
     }

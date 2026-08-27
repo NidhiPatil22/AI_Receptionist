@@ -146,7 +146,8 @@ export const authController = {
    */
   async continueWithDemo(req: Request, res: Response) {
     try {
-      console.log('🔑 [AuthController] Resolving bypass for Demo Mode...');
+      const maskedDbUrl = (env.DATABASE_URL || '').replace(/:[^:@/]+@/, ':****@');
+      console.log(`🔑 [AuthController] Resolving bypass for Demo Mode. Target DB URL: ${maskedDbUrl}`);
       
       // Fetch the pre-seeded Bloom Dental Studio business
       let business = await prisma.business.findFirst({
@@ -155,6 +156,7 @@ export const authController = {
 
       // If business was deleted or db is empty, create a fallback
       if (!business) {
+        console.log('🔑 [AuthController] Seeded Bloom Dental Studio not found. Generating fallback record...');
         business = await prisma.business.create({
           data: {
             name: 'Bloom Dental Studio',
@@ -176,6 +178,7 @@ export const authController = {
       });
 
       if (!user) {
+        console.log('🔑 [AuthController] Seeded admin user not found. Generating fallback record...');
         user = await prisma.user.create({
           data: {
             name: 'Dr. Sarah Bloom',
@@ -185,6 +188,8 @@ export const authController = {
           },
         });
       }
+
+      console.log(`🔑 [AuthController] Demo bypass successful for user: ${user.email}`);
 
       const token = generateToken({
         id: user.id,
@@ -199,8 +204,11 @@ export const authController = {
         business,
       });
     } catch (error) {
-      console.error('Demo bypass error:', error);
-      return res.status(500).json({ error: 'Internal demo resolution error.' });
+      console.error('🔑 [AuthController] Demo bypass failure stack:', error);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      return res.status(500).json({ 
+        error: `Could not establish simulation session. Database error: ${errorMsg}` 
+      });
     }
   },
 };
