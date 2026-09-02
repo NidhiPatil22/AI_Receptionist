@@ -31,6 +31,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode }) => {
         data = await api.auth.login({ email, password });
       }
 
+      localStorage.clear();
       localStorage.setItem('reception_token', data.token);
       localStorage.setItem('reception_user', JSON.stringify(data.user));
       localStorage.setItem('reception_business', JSON.stringify(data.business));
@@ -46,6 +47,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode }) => {
     setLoading(true);
     setError('');
     try {
+      localStorage.clear();
       const data = await api.auth.continueWithDemo();
       localStorage.setItem('reception_token', data.token);
       localStorage.setItem('reception_user', JSON.stringify(data.user));
@@ -99,7 +101,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode }) => {
                     <input
                       type="text"
                       required
-                      placeholder="Dr. Sarah Bloom"
+                      placeholder="Jane Doe"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className="block w-full pl-10 pr-4 py-2.5 rounded-full border-2 border-[#2E1E38] bg-[#FAF6F0] text-sm text-[#2E1E38] placeholder-gray-400 focus:outline-none focus:bg-white transition-colors"
@@ -118,7 +120,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode }) => {
                     <input
                       type="text"
                       required
-                      placeholder="Bloom Dental Studio"
+                      placeholder="My Business Studio"
                       value={businessName}
                       onChange={(e) => setBusinessName(e.target.value)}
                       className="block w-full pl-10 pr-4 py-2.5 rounded-full border-2 border-[#2E1E38] bg-[#FAF6F0] text-sm text-[#2E1E38] placeholder-gray-400 focus:outline-none focus:bg-white transition-colors"
@@ -139,7 +141,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode }) => {
                 <input
                   type="email"
                   required
-                  placeholder="admin@bloomdental.studio"
+                  placeholder="name@business.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="block w-full pl-10 pr-4 py-2.5 rounded-full border-2 border-[#2E1E38] bg-[#FAF6F0] text-sm text-[#2E1E38] placeholder-gray-400 focus:outline-none focus:bg-white transition-colors"
@@ -175,23 +177,28 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode }) => {
             </button>
           </form>
 
-          {/* Divider */}
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center" aria-hidden="true">
-              <div className="w-full border-t-2 border-[#2E1E38]/10"></div>
-            </div>
-            <div className="relative flex justify-center text-xs font-bold uppercase">
-              <span className="bg-[#FFFBF7] px-3.5 text-[#A582B8]">or explore instantly</span>
-            </div>
-          </div>
+          {/* Divider and Demo button only on Login */}
+          {mode === 'login' && (
+            <>
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                  <div className="w-full border-t-2 border-[#2E1E38]/10"></div>
+                </div>
+                <div className="relative flex justify-center text-xs font-bold uppercase">
+                  <span className="bg-[#FFFBF7] px-3.5 text-[#A582B8]">or explore instantly</span>
+                </div>
+              </div>
 
-          <button
-            onClick={handleStartDemo}
-            disabled={loading}
-            className="w-full py-3 rounded-full text-sm font-bold bg-[#FFE5EC] hover:bg-[#FCA3B7]/30 text-[#2E1E38] border-2 border-[#2E1E38] hover:shadow-cute-border transition-all cursor-pointer flex items-center justify-center gap-1.5"
-          >
-            Dr. Bloom Demo Bypass 🔑
-          </button>
+              <button
+                type="button"
+                onClick={handleStartDemo}
+                disabled={loading}
+                className="w-full py-3 rounded-full text-sm font-bold bg-[#FFE5EC] hover:bg-[#FCA3B7]/30 text-[#2E1E38] border-2 border-[#2E1E38] hover:shadow-cute-border transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                Dr. Bloom Demo Bypass 🔑
+              </button>
+            </>
+          )}
         </div>
 
         <p className="mt-6 text-center text-xs font-semibold text-[#A582B8]">

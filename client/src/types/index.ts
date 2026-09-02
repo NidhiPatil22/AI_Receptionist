@@ -12,6 +12,12 @@ export interface Business {
   createdAt: string;
   updatedAt: string;
   businessHours?: BusinessHours[];
+  receptionistName?: string;
+  receptionistActive?: boolean;
+  voiceEnabled?: boolean;
+  messagingEnabled?: boolean;
+  autoAnswer?: boolean;
+  humanEscalation?: boolean;
 }
 
 export interface User {

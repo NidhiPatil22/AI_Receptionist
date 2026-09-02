@@ -69,6 +69,14 @@ export const faqController = {
   async updateFAQ(req: AuthenticatedRequest, res: Response) {
     try {
       const { id } = req.params;
+      const businessId = req.user?.businessId;
+      if (!businessId) return res.status(400).json({ error: 'Business ID missing.' });
+
+      const existingFaq = await prisma.fAQ.findUnique({ where: { id } });
+      if (!existingFaq || existingFaq.businessId !== businessId) {
+        return res.status(403).json({ error: 'Unauthorized to modify this FAQ.' });
+      }
+
       const { question, answer, category, active } = req.body;
 
       const faq = await prisma.fAQ.update({
@@ -94,6 +102,13 @@ export const faqController = {
   async deleteFAQ(req: AuthenticatedRequest, res: Response) {
     try {
       const { id } = req.params;
+      const businessId = req.user?.businessId;
+      if (!businessId) return res.status(400).json({ error: 'Business ID missing.' });
+
+      const existingFaq = await prisma.fAQ.findUnique({ where: { id } });
+      if (!existingFaq || existingFaq.businessId !== businessId) {
+        return res.status(403).json({ error: 'Unauthorized to delete this FAQ.' });
+      }
 
       await prisma.fAQ.delete({
         where: { id },

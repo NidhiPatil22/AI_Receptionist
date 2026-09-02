@@ -39,6 +39,12 @@ export const authController = {
           industry: 'General Business',
           services: 'Consultation, Support',
           pricing: 'Please inquire for pricing schedules.',
+          receptionistName: 'AI Receptionist',
+          receptionistActive: true,
+          voiceEnabled: true,
+          messagingEnabled: true,
+          autoAnswer: true,
+          humanEscalation: true,
         },
       });
 
@@ -87,6 +93,9 @@ export const authController = {
         name: user.name,
       });
 
+      console.log(`[AUTH SIGNUP] created businessId: ${business.id}, userId: ${user.id}, email: ${user.email}`);
+      console.log(`[AUTH JWT] userId: ${user.id}, businessId: ${user.businessId}`);
+
       return res.status(201).json({
         token,
         user: { id: user.id, name: user.name, email: user.email },
@@ -129,6 +138,8 @@ export const authController = {
         businessId: user.businessId,
         name: user.name,
       });
+
+      console.log(`[AUTH LOGIN] authenticated userId: ${user.id}, businessId: ${user.businessId}, email: ${user.email}`);
 
       return res.json({
         token,

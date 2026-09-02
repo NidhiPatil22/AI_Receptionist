@@ -16,14 +16,26 @@ export const DashboardOverview: React.FC = () => {
     totalCalls: 0,
     missedCalls: 0,
     totalMessages: 0,
-    aiHandlingRate: 100,
-    avgResponseTime: '2.4s',
+    aiHandlingRate: 0,
+    avgResponseTime: '0s',
   });
   const [loading, setLoading] = useState(true);
-  const [businessName, setBusinessName] = useState('Bloom Dental Studio');
-  const [ownerName, setOwnerName] = useState('Dr. Sarah Bloom');
-  const [receptionistName, setReceptionistName] = useState('Bloomie');
-  const [receptionistActive, setReceptionistActive] = useState(true);
+  const [businessName, setBusinessName] = useState(() => {
+    const biz = localStorage.getItem('reception_business');
+    return biz ? JSON.parse(biz).name || '' : '';
+  });
+  const [ownerName, setOwnerName] = useState(() => {
+    const u = localStorage.getItem('reception_user');
+    return u ? JSON.parse(u).name || '' : '';
+  });
+  const [receptionistName, setReceptionistName] = useState(() => {
+    const biz = localStorage.getItem('reception_business');
+    return biz ? JSON.parse(biz).receptionistName || 'AI Receptionist' : 'AI Receptionist';
+  });
+  const [receptionistActive, setReceptionistActive] = useState(() => {
+    const biz = localStorage.getItem('reception_business');
+    return biz ? (JSON.parse(biz).receptionistActive ?? true) : true;
+  });
 
   const fetchData = async () => {
     try {
@@ -46,7 +58,7 @@ export const DashboardOverview: React.FC = () => {
       setStats(metrics.stats);
       if (bizProfile) {
         setBusinessName(bizProfile.name);
-        setReceptionistName(bizProfile.receptionistName || 'Bloomie');
+        setReceptionistName(bizProfile.receptionistName || 'AI Receptionist');
         setReceptionistActive(bizProfile.receptionistActive ?? true);
         localStorage.setItem('reception_business', JSON.stringify(bizProfile));
       }
@@ -106,6 +118,15 @@ export const DashboardOverview: React.FC = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col justify-center items-center gap-3 text-[#A582B8] font-bold text-xs">
+        <div className="w-8 h-8 border-4 border-[#A582B8] border-t-transparent rounded-full animate-spin" />
+        Loading your command center...
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 fade-in-load">
       {/* Welcome & AI Mascot Card */}
@@ -115,7 +136,7 @@ export const DashboardOverview: React.FC = () => {
             {ownerName}'s Command Center ✨
           </h1>
           <p className="text-sm font-semibold text-[#52405A] max-w-xl">
-            Good morning! Your receptionist, <strong>{receptionistName}</strong>, is currently {receptionistActive ? 'online and active' : 'paused/offline'}. She has handled {stats.totalConversations ?? 0} customer chats today with a {stats.aiHandlingRate ?? 100}% auto-resolution rate.
+            Good morning! Your receptionist, <strong>{receptionistName}</strong>, is currently {receptionistActive ? 'online and active' : 'paused/offline'}. She has handled {stats.totalConversations ?? 0} customer chats today with a {stats.aiHandlingRate ?? 0}% auto-resolution rate.
           </p>
           <div className="flex flex-wrap gap-2.5 justify-center md:justify-start pt-2">
             {receptionistActive ? (
@@ -147,7 +168,7 @@ export const DashboardOverview: React.FC = () => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { title: 'Conversations Today', val: stats.totalConversations ?? 0, col: 'bg-[#D0E1FD]', sub: 'Calls and DMs handled' },
-          { title: 'AI Handled Rate', val: `${stats.aiHandlingRate ?? 100}%`, col: 'bg-[#FCF6BD]', sub: 'No human steps needed' },
+          { title: 'AI Handled Rate', val: `${stats.aiHandlingRate ?? 0}%`, col: 'bg-[#FCF6BD]', sub: 'No human steps needed' },
           { title: 'Urgent Alerts', val: stats.urgentConversations ?? 0, col: 'bg-[#FCE1E4] text-red-900 border-red-300', sub: 'Require your review' },
           { title: 'Total Calls Answered', val: stats.totalCalls ?? 0, col: 'bg-[#E8DFF5]', sub: 'Simulated voice logs' },
         ].map((item, idx) => (

@@ -19,7 +19,10 @@ const DashboardLayout: React.FC = () => {
   const location = useLocation();
   
   const [token, setToken] = useState(localStorage.getItem('reception_token'));
-  const [businessName, setBusinessName] = useState('Bloom Dental Studio');
+  const [businessName, setBusinessName] = useState(() => {
+    const biz = localStorage.getItem('reception_business');
+    return biz ? JSON.parse(biz).name : '';
+  });
   const [notifications, setNotifications] = useState<NotificationAlert[]>([]);
   const [showBellMenu, setShowBellMenu] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -29,10 +32,9 @@ const DashboardLayout: React.FC = () => {
 
   // Sign out helper
   const handleLogout = () => {
-    localStorage.removeItem('reception_token');
-    localStorage.removeItem('reception_user');
-    localStorage.removeItem('reception_business');
-    navigate('/');
+    localStorage.clear();
+    setToken(null);
+    navigate('/login');
   };
 
   const fetchAlerts = async () => {
@@ -57,12 +59,20 @@ const DashboardLayout: React.FC = () => {
   useEffect(() => {
     if (!token) return;
 
-    // Load business details
-    const biz = localStorage.getItem('reception_business');
-    if (biz) {
-      setBusinessName(JSON.parse(biz).name);
-    }
+    // Load fresh business details from API
+    const loadFreshBusiness = async () => {
+      try {
+        const biz = await api.business.getProfile();
+        if (biz) {
+          setBusinessName(biz.name);
+          localStorage.setItem('reception_business', JSON.stringify(biz));
+        }
+      } catch (err) {
+        console.error('Failed to sync business in layout:', err);
+      }
+    };
 
+    loadFreshBusiness();
     fetchAlerts();
     // Poll for new simulated messages/calls every 8 seconds
     const interval = setInterval(fetchAlerts, 8000);
@@ -225,7 +235,7 @@ const DashboardLayout: React.FC = () => {
           
           <div className="pt-6 border-t border-[#2E1E38]/10 text-center space-y-2">
             <Mascot state="happy" size={70} />
-            <p className="text-[10px] font-bold text-[#A582B8] uppercase">Bloomie Companion</p>
+            <p className="text-[10px] font-bold text-[#A582B8] uppercase">AI Companion</p>
           </div>
         </aside>
 

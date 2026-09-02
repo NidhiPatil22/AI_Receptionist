@@ -4,17 +4,14 @@ const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 async function main() {
     console.log('🌱 Starting database seeding...');
-    // 1. Clean existing data
-    await prisma.escalation.deleteMany();
-    await prisma.notification.deleteMany();
-    await prisma.call.deleteMany();
-    await prisma.message.deleteMany();
-    await prisma.conversation.deleteMany();
-    await prisma.businessHours.deleteMany();
-    await prisma.fAQ.deleteMany();
-    await prisma.user.deleteMany();
-    await prisma.business.deleteMany();
-    console.log('🧹 Cleaned existing database tables.');
+    // 1. Check if demo business already exists
+    const existingDemo = await prisma.business.findFirst({
+        where: { name: 'Bloom Dental Studio' }
+    });
+    if (existingDemo) {
+        console.log('ℹ️ Demo business "Bloom Dental Studio" already exists. Skipping seed to protect tenant data.');
+        return;
+    }
     // 2. Seed Business
     const business = await prisma.business.create({
         data: {

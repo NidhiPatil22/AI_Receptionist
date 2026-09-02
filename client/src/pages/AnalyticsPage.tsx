@@ -64,8 +64,8 @@ export const AnalyticsPage: React.FC = () => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: 'Conversations Handled', value: stats?.totalConversations ?? 0, sub: 'Total phone/chats' },
-          { label: 'AI Auto-Response Rate', value: `${stats?.aiHandlingRate ?? 100}%`, sub: 'No human steps needed' },
-          { label: 'Avg AI Response Speed', value: '2.4s', sub: 'Instant receptionist time' },
+          { label: 'AI Auto-Response Rate', value: `${stats?.aiHandlingRate ?? 0}%`, sub: 'No human steps needed' },
+          { label: 'Avg AI Response Speed', value: stats?.avgResponseTime || '0s', sub: 'Calculated response delta' },
           { label: 'Urgency Escalations', value: stats?.escalationsCount ?? 0, sub: 'Required human takeover' },
         ].map((item, idx) => (
           <div key={idx} className="bg-[#FFFBF7] border-2 border-[#2E1E38] rounded-2xl p-5 shadow-sm">
@@ -86,20 +86,27 @@ export const AnalyticsPage: React.FC = () => {
         <div className="bg-[#FFFBF7] border-2 border-[#2E1E38] rounded-3xl p-5 shadow-sm space-y-4">
           <h3 className="font-display text-base text-[#2E1E38]">Simulated Voice Calls (Daily)</h3>
           <div className="h-64 text-xs">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={charts?.callsOverTime || []} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="callsGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#D0E1FD" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#D0E1FD" stopOpacity={0.1}/>
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="date" stroke="#2E1E38" fontSize={9} fontWeight="bold" />
-                <YAxis stroke="#2E1E38" fontSize={9} fontWeight="bold" />
-                <Tooltip />
-                <Area type="monotone" dataKey="calls" stroke="#4B88E3" strokeWidth={2} fillOpacity={1} fill="url(#callsGradient)" />
-              </AreaChart>
-            </ResponsiveContainer>
+            {(!charts?.callsOverTime || charts.callsOverTime.length === 0) ? (
+              <div className="h-full flex flex-col items-center justify-center text-xs font-semibold text-[#8C7B93] bg-[#FAF6F0]/40 rounded-2xl border border-dashed border-[#2E1E38]/20 p-4 text-center">
+                <p className="font-bold text-sm text-[#2E1E38] mb-1">No call data yet</p>
+                <p className="text-[11px]">Calls will appear here as customers dial your number.</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={charts.callsOverTime} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="callsGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#D0E1FD" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#D0E1FD" stopOpacity={0.1}/>
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="date" stroke="#2E1E38" fontSize={9} fontWeight="bold" />
+                  <YAxis stroke="#2E1E38" fontSize={9} fontWeight="bold" />
+                  <Tooltip />
+                  <Area type="monotone" dataKey="calls" stroke="#4B88E3" strokeWidth={2} fillOpacity={1} fill="url(#callsGradient)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
@@ -107,14 +114,21 @@ export const AnalyticsPage: React.FC = () => {
         <div className="bg-[#FFFBF7] border-2 border-[#2E1E38] rounded-3xl p-5 shadow-sm space-y-4">
           <h3 className="font-display text-base text-[#2E1E38]">Message Traffic Volume (Daily)</h3>
           <div className="h-64 text-xs">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={charts?.messagesOverTime || []} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                <XAxis dataKey="date" stroke="#2E1E38" fontSize={9} fontWeight="bold" />
-                <YAxis stroke="#2E1E38" fontSize={9} fontWeight="bold" />
-                <Tooltip />
-                <Bar dataKey="messages" fill="#E8DFF5" stroke="#2E1E38" strokeWidth={1.5} radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {(!charts?.messagesOverTime || charts.messagesOverTime.length === 0) ? (
+              <div className="h-full flex flex-col items-center justify-center text-xs font-semibold text-[#8C7B93] bg-[#FAF6F0]/40 rounded-2xl border border-dashed border-[#2E1E38]/20 p-4 text-center">
+                <p className="font-bold text-sm text-[#2E1E38] mb-1">No message data yet</p>
+                <p className="text-[11px]">Message volume will appear here as conversations happen.</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={charts.messagesOverTime} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                  <XAxis dataKey="date" stroke="#2E1E38" fontSize={9} fontWeight="bold" />
+                  <YAxis stroke="#2E1E38" fontSize={9} fontWeight="bold" />
+                  <Tooltip />
+                  <Bar dataKey="messages" fill="#E8DFF5" stroke="#2E1E38" strokeWidth={1.5} radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
       </div>
@@ -125,100 +139,127 @@ export const AnalyticsPage: React.FC = () => {
         <div className="bg-[#FFFBF7] border-2 border-[#2E1E38] rounded-3xl p-5 shadow-sm flex flex-col justify-between">
           <h3 className="font-display text-base text-[#2E1E38] mb-4">Traffic Channel Share</h3>
           <div className="h-56 text-xs flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={charts?.channelsData || []}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={75}
-                  paddingAngle={3}
-                  dataKey="value"
-                >
-                  {(charts?.channelsData || []).map((entry: any, index: number) => (
-                    <Cell key={`cell-${index}`} fill={PASTEL_COLORS[index % PASTEL_COLORS.length]} stroke="#2E1E38" strokeWidth={1.5} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            {(!charts?.channelsData || charts.channelsData.length === 0) ? (
+              <div className="h-full w-full flex flex-col items-center justify-center text-xs font-semibold text-[#8C7B93] bg-[#FAF6F0]/40 rounded-2xl border border-dashed border-[#2E1E38]/20 p-4 text-center">
+                <p className="font-bold text-xs text-[#2E1E38] mb-1">No channel traffic yet</p>
+                <p className="text-[10px]">Channel distribution will populate as chats arrive.</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={charts.channelsData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={50}
+                    outerRadius={75}
+                    paddingAngle={3}
+                    dataKey="value"
+                  >
+                    {charts.channelsData.map((entry: any, index: number) => (
+                      <Cell key={`cell-${index}`} fill={PASTEL_COLORS[index % PASTEL_COLORS.length]} stroke="#2E1E38" strokeWidth={1.5} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </div>
           {/* Custom legend */}
-          <div className="flex flex-wrap gap-2 justify-center pt-2 text-[10px] font-bold text-[#52405A]">
-            {(charts?.channelsData || []).map((entry: any, index: number) => (
-              <span key={entry.name} className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded border border-[#2E1E38]" style={{ backgroundColor: PASTEL_COLORS[index % PASTEL_COLORS.length] }} />
-                {entry.name} ({entry.value})
-              </span>
-            ))}
-          </div>
+          {charts?.channelsData && charts.channelsData.length > 0 && (
+            <div className="flex flex-wrap gap-2 justify-center pt-2 text-[10px] font-bold text-[#52405A]">
+              {charts.channelsData.map((entry: any, index: number) => (
+                <span key={entry.name} className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded border border-[#2E1E38]" style={{ backgroundColor: PASTEL_COLORS[index % PASTEL_COLORS.length] }} />
+                  {entry.name} ({entry.value})
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* AI handling rates */}
         <div className="bg-[#FFFBF7] border-2 border-[#2E1E38] rounded-3xl p-5 shadow-sm flex flex-col justify-between">
           <h3 className="font-display text-base text-[#2E1E38] mb-4">Auto Handling Resolution</h3>
           <div className="h-56 text-xs flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={charts?.handlingData || []}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={70}
-                  label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
-                  dataKey="value"
-                >
-                  {(charts?.handlingData || []).map((entry: any, index: number) => (
-                    <Cell key={`cell-${index}`} fill={PASTEL_COLORS[(index + 1) % PASTEL_COLORS.length]} stroke="#2E1E38" strokeWidth={1.5} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            {(!charts?.handlingData || charts.handlingData.length === 0) ? (
+              <div className="h-full w-full flex flex-col items-center justify-center text-xs font-semibold text-[#8C7B93] bg-[#FAF6F0]/40 rounded-2xl border border-dashed border-[#2E1E38]/20 p-4 text-center">
+                <p className="font-bold text-xs text-[#2E1E38] mb-1">No handling data yet</p>
+                <p className="text-[10px]">AI vs Human handling metrics will appear once messages are logged.</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={charts.handlingData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={70}
+                    label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                    dataKey="value"
+                  >
+                    {charts.handlingData.map((entry: any, index: number) => (
+                      <Cell key={`cell-${index}`} fill={PASTEL_COLORS[(index + 1) % PASTEL_COLORS.length]} stroke="#2E1E38" strokeWidth={1.5} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </div>
           {/* Custom legend */}
-          <div className="flex justify-center gap-4 pt-2 text-[10px] font-bold text-[#52405A]">
-            {(charts?.handlingData || []).map((entry: any, index: number) => (
-              <span key={entry.name} className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded border border-[#2E1E38]" style={{ backgroundColor: PASTEL_COLORS[(index + 1) % PASTEL_COLORS.length] }} />
-                {entry.name}
-              </span>
-            ))}
-          </div>
+          {charts?.handlingData && charts.handlingData.length > 0 && (
+            <div className="flex justify-center gap-4 pt-2 text-[10px] font-bold text-[#52405A]">
+              {charts.handlingData.map((entry: any, index: number) => (
+                <span key={entry.name} className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded border border-[#2E1E38]" style={{ backgroundColor: PASTEL_COLORS[(index + 1) % PASTEL_COLORS.length] }} />
+                  {entry.name}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Urgency distributions */}
         <div className="bg-[#FFFBF7] border-2 border-[#2E1E38] rounded-3xl p-5 shadow-sm flex flex-col justify-between">
           <h3 className="font-display text-base text-[#2E1E38] mb-4">Urgency Distribution</h3>
           <div className="h-56 text-xs flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={charts?.urgencyDistribution || []}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={45}
-                  outerRadius={70}
-                  dataKey="value"
-                >
-                  {(charts?.urgencyDistribution || []).map((entry: any, index: number) => (
-                    <Cell key={`cell-${index}`} fill={PASTEL_COLORS[(index + 2) % PASTEL_COLORS.length]} stroke="#2E1E38" strokeWidth={1.5} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            {(!charts?.urgencyDistribution || charts.urgencyDistribution.length === 0) ? (
+              <div className="h-full w-full flex flex-col items-center justify-center text-xs font-semibold text-[#8C7B93] bg-[#FAF6F0]/40 rounded-2xl border border-dashed border-[#2E1E38]/20 p-4 text-center">
+                <p className="font-bold text-xs text-[#2E1E38] mb-1">No urgency data yet</p>
+                <p className="text-[10px]">Urgency levels will be categorized as conversations arrive.</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={charts.urgencyDistribution}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={45}
+                    outerRadius={70}
+                    dataKey="value"
+                  >
+                    {charts.urgencyDistribution.map((entry: any, index: number) => (
+                      <Cell key={`cell-${index}`} fill={PASTEL_COLORS[(index + 2) % PASTEL_COLORS.length]} stroke="#2E1E38" strokeWidth={1.5} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </div>
           {/* Custom legend */}
-          <div className="flex flex-wrap gap-2 justify-center pt-2 text-[10px] font-bold text-[#52405A]">
-            {(charts?.urgencyDistribution || []).map((entry: any, index: number) => (
-              <span key={entry.name} className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded border border-[#2E1E38]" style={{ backgroundColor: PASTEL_COLORS[(index + 2) % PASTEL_COLORS.length] }} />
-                {entry.name} ({entry.value})
-              </span>
-            ))}
-          </div>
+          {charts?.urgencyDistribution && charts.urgencyDistribution.length > 0 && (
+            <div className="flex flex-wrap gap-2 justify-center pt-2 text-[10px] font-bold text-[#52405A]">
+              {charts.urgencyDistribution.map((entry: any, index: number) => (
+                <span key={entry.name} className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded border border-[#2E1E38]" style={{ backgroundColor: PASTEL_COLORS[(index + 2) % PASTEL_COLORS.length] }} />
+                  {entry.name} ({entry.value})
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -363,7 +363,7 @@ export const ConversationsInbox: React.FC = () => {
                       className={`flex flex-col ${isCustomer ? 'items-start' : 'items-end'}`}
                     >
                       <div className="flex items-center gap-1 mb-1 text-[9px] font-bold text-[#A582B8] uppercase">
-                        <span>{isCustomer ? (selectedConversation.customerName || 'Customer') : isAI ? '🤖 Bloomie AI' : '👤 You'}</span>
+                        <span>{isCustomer ? (selectedConversation.customerName || 'Customer') : isAI ? '🤖 AI Receptionist' : '👤 You'}</span>
                       </div>
                       
                       <div

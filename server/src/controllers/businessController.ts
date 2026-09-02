@@ -11,6 +11,8 @@ export const businessController = {
       const businessId = req.user?.businessId;
       if (!businessId) return res.status(400).json({ error: 'Business ID missing.' });
 
+      console.log(`[BUSINESS PROFILE] authenticated businessId: ${businessId}`);
+
       const business = await prisma.business.findUnique({
         where: { id: businessId },
         include: {
@@ -39,7 +41,10 @@ export const businessController = {
       const businessId = req.user?.businessId;
       if (!businessId) return res.status(400).json({ error: 'Business ID missing.' });
 
-      const { name, description, phone, email, website, address, industry, services, pricing } = req.body;
+      const { 
+        name, description, phone, email, website, address, industry, services, pricing,
+        receptionistName, receptionistActive, voiceEnabled, messagingEnabled, autoAnswer, humanEscalation 
+      } = req.body;
 
       const updated = await prisma.business.update({
         where: { id: businessId },
@@ -53,6 +58,12 @@ export const businessController = {
           industry,
           services,
           pricing,
+          receptionistName,
+          receptionistActive: receptionistActive !== undefined ? Boolean(receptionistActive) : undefined,
+          voiceEnabled: voiceEnabled !== undefined ? Boolean(voiceEnabled) : undefined,
+          messagingEnabled: messagingEnabled !== undefined ? Boolean(messagingEnabled) : undefined,
+          autoAnswer: autoAnswer !== undefined ? Boolean(autoAnswer) : undefined,
+          humanEscalation: humanEscalation !== undefined ? Boolean(humanEscalation) : undefined,
         },
       });
 

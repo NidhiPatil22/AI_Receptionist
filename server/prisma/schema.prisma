@@ -18,7 +18,7 @@ model Business {
   industry    String?
   services    String?  // Store as string list or plain text
   pricing     String?  // Store pricing notes
-  receptionistName    String   @default("Bloomie")
+  receptionistName    String   @default("AI Receptionist")
   receptionistActive  Boolean  @default(true)
   voiceEnabled        Boolean  @default(true)
   messagingEnabled    Boolean  @default(true)

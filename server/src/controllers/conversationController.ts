@@ -49,6 +49,9 @@ export const conversationController = {
   async getConversationDetails(req: AuthenticatedRequest, res: Response) {
     try {
       const { id } = req.params;
+      const businessId = req.user?.businessId;
+      if (!businessId) return res.status(400).json({ error: 'Business ID missing.' });
+
       const conversation = await prisma.conversation.findUnique({
         where: { id },
         include: {
@@ -62,7 +65,7 @@ export const conversationController = {
         },
       });
 
-      if (!conversation) {
+      if (!conversation || conversation.businessId !== businessId) {
         return res.status(404).json({ error: 'Conversation not found.' });
       }
 
@@ -86,6 +89,13 @@ export const conversationController = {
     try {
       const { id } = req.params; // Conversation ID
       const { content, sender } = req.body; // sender: 'ai' or 'human'
+      const businessId = req.user?.businessId;
+      if (!businessId) return res.status(400).json({ error: 'Business ID missing.' });
+
+      const conversation = await prisma.conversation.findUnique({ where: { id } });
+      if (!conversation || conversation.businessId !== businessId) {
+        return res.status(404).json({ error: 'Conversation not found.' });
+      }
 
       if (!content || !sender) {
         return res.status(400).json({ error: 'Content and sender fields are required.' });
@@ -118,6 +128,13 @@ export const conversationController = {
     try {
       const { id } = req.params;
       const { content } = req.body;
+      const businessId = req.user?.businessId;
+      if (!businessId) return res.status(400).json({ error: 'Business ID missing.' });
+
+      const conversation = await prisma.conversation.findUnique({ where: { id } });
+      if (!conversation || conversation.businessId !== businessId) {
+        return res.status(404).json({ error: 'Conversation not found.' });
+      }
 
       if (!content) {
         return res.status(400).json({ error: 'Note content is required.' });
@@ -151,6 +168,13 @@ export const conversationController = {
     try {
       const { id } = req.params;
       const { status } = req.body; // 'resolved' or 'active'
+      const businessId = req.user?.businessId;
+      if (!businessId) return res.status(400).json({ error: 'Business ID missing.' });
+
+      const conversation = await prisma.conversation.findUnique({ where: { id } });
+      if (!conversation || conversation.businessId !== businessId) {
+        return res.status(404).json({ error: 'Conversation not found.' });
+      }
 
       const updated = await prisma.conversation.update({
         where: { id },
@@ -181,6 +205,13 @@ export const conversationController = {
   async takeover(req: AuthenticatedRequest, res: Response) {
     try {
       const { id } = req.params;
+      const businessId = req.user?.businessId;
+      if (!businessId) return res.status(400).json({ error: 'Business ID missing.' });
+
+      const conversation = await prisma.conversation.findUnique({ where: { id } });
+      if (!conversation || conversation.businessId !== businessId) {
+        return res.status(404).json({ error: 'Conversation not found.' });
+      }
 
       const updated = await prisma.conversation.update({
         where: { id },
@@ -201,7 +232,10 @@ export const conversationController = {
    */
   async getNotifications(req: AuthenticatedRequest, res: Response) {
     try {
-      const alerts = await notificationService.getUnreadNotifications();
+      const businessId = req.user?.businessId;
+      if (!businessId) return res.status(400).json({ error: 'Business ID missing.' });
+
+      const alerts = await notificationService.getUnreadNotifications(businessId);
       return res.json(alerts);
     } catch (error) {
       console.error('Error fetching alerts:', error);
@@ -215,6 +249,18 @@ export const conversationController = {
   async markNotificationRead(req: AuthenticatedRequest, res: Response) {
     try {
       const { id } = req.params;
+      const businessId = req.user?.businessId;
+      if (!businessId) return res.status(400).json({ error: 'Business ID missing.' });
+
+      const notification = await prisma.notification.findUnique({
+        where: { id },
+        include: { conversation: true },
+      });
+
+      if (!notification || (notification.conversation && notification.conversation.businessId !== businessId)) {
+        return res.status(403).json({ error: 'Unauthorized to modify this notification.' });
+      }
+
       const alert = await notificationService.markAsRead(id);
       return res.json(alert);
     } catch (error) {
@@ -228,7 +274,10 @@ export const conversationController = {
    */
   async markAllNotificationsRead(req: AuthenticatedRequest, res: Response) {
     try {
-      await notificationService.markAllAsRead();
+      const businessId = req.user?.businessId;
+      if (!businessId) return res.status(400).json({ error: 'Business ID missing.' });
+
+      await notificationService.markAllAsRead(businessId);
       return res.json({ success: true });
     } catch (error) {
       console.error('Error reading all alerts:', error);

@@ -11,7 +11,6 @@ ReceptionAI (virtual receptionist mascot **Bloomie**) is a premium, virtual rece
 <img width="959" height="408" alt="image" src="https://github.com/user-attachments/assets/2cff9f38-9208-4ab1-a3fd-46dd09763534" />
 <img width="959" height="409" alt="image" src="https://github.com/user-attachments/assets/0fd87ce9-50cc-4e6a-abbb-b457f69c6c98" />
 
-
 ## Features 🍬
 
 1. **AI Phone Receptionist**: Simulated call answering, real-time audio transcript logs, and custom text-to-speech dialogue feeds.
@@ -49,6 +48,7 @@ AIreceptionist/
 │   ├── schema.prisma           # Relational schema
 │   └── seed.ts                 # Database seeder (Bloom Dental Studio data)
 │
+├── vercel.json                 # Frontend deployment configuration
 ├── .env                        # Configuration file
 └── package.json                # Root concurrent scripts
 ```
@@ -57,7 +57,7 @@ AIreceptionist/
 
 ## Local Setup & Quickstart 🚀
 
-Follow these steps to run the application locally on your Windows system:
+Follow these steps to run the application locally on your system:
 
 ### 1. Install Node.js Dependencies
 Install all package dependencies in the root, client, and server folders:
@@ -85,26 +85,101 @@ npm run dev
 
 ### 4. Logging in / Demo Mode
 On the Auth login screen, you can:
-- Create a new account (which automatically seeds default opening hours and hours FAQs).
+- Create a new account (which automatically seeds default opening hours and FAQs).
 - Click the **"Dr. Bloom Demo Bypass 🔑"** button. This automatically logs you into the preseeded Bloom Dental Studio account so you can explore the dashboard populated with mock data immediately.
 
 ---
 
-## Switching Database to PostgreSQL in Production 🔌
+## Production Deployment Guide 🌍
 
-To transition the database from SQLite to PostgreSQL:
+Our workspace includes production-ready code designed for seamless, automated deployment. We host the Frontend on **Vercel** and the Backend API on **Render**, backed by a production-grade **PostgreSQL** database.
 
-1. Update the `datasource` block in [schema.prisma](file:///prisma/schema.prisma):
+### 📐 Deployment Architecture
+
+```mermaid
+graph TD
+    Client[React Frontend - Vite on Vercel] <-->|HTTPS API requests / JWT Auth| Server[Express Backend on Render]
+    Server <-->|Prisma Client| Database[(PostgreSQL Database)]
+```
+
+---
+
+### 📦 Implementation Details Built for Cloud Deployment
+
+To make cloud deployments zero-hassle, we have already implemented the following configurations:
+1. **Dynamic Backend CORS Policy**: In [`server/src/app.ts`](file:///server/src/app.ts), the CORS middleware automatically trusts any source matching `*.vercel.app` as well as the custom frontend url specified in `APP_URL`.
+2. **Automated DB Setup on Build**: In [`server/package.json`](file:///server/package.json), the custom `build` script compiles the server, generates the Prisma schema, and automatically runs `npx prisma db push` and `npx prisma db seed` if the `RENDER=true` environment variable is defined.
+3. **Vercel Router Compatibility**: The [`vercel.json`](file:///vercel.json) file at the root configures Vercel's output directory to `client/dist` and enables fallback rewrites to support React Router single-page application routing.
+
+---
+
+### 🛠️ Step 1: Provision a PostgreSQL Database
+You can provision a managed PostgreSQL database on any provider (such as Neon, Supabase, Render PostgreSQL, AWS RDS, etc.). 
+Copy your PostgreSQL connection URL. It will look like this:
+```text
+postgresql://username:password@hostname:5432/databasename?sslmode=require
+```
+
+---
+
+### 🚀 Step 2: Deploy the Backend on Render
+
+1. Sign in to your [Render Dashboard](https://dashboard.render.com/) and click **New +** > **Web Service**.
+2. Connect your Git repository.
+3. Configure the service details:
+   - **Name**: `ai-receptionist-backend`
+   - **Environment**: `Node`
+   - **Root Directory**: `server`
+   - **Build Command**: `npm run build`
+   - **Start Command**: `npm run start`
+4. Expand the **Advanced** section to add the following **Environment Variables**:
+
+| Key | Example Value | Description |
+| :--- | :--- | :--- |
+| `RENDER` | `true` | **Critical**: Triggers automatic Prisma migrations and seeding on Render build. |
+| `DATABASE_URL` | `postgresql://user:pass@host:5432/db?sslmode=require` | Your PostgreSQL connection string. |
+| `JWT_SECRET` | `generate_some_long_secure_random_string` | Secret key used to sign and verify JWT authentication tokens. |
+| `APP_URL` | `https://ai-receptionist-frontend.vercel.app` | URL of your deployed Vercel frontend (authorizes CORS). |
+| `AI_API_KEY` | *(Optional)* | Your OpenAI / Anthropic key (defaults to demo simulation if empty). |
+| `VOICE_API_KEY` | *(Optional)* | Key for telephony voice synthesizers. |
+| `MESSAGING_API_KEY` | *(Optional)* | Key for communication APIs. |
+
+5. Click **Deploy Web Service**. Render will automatically run the build, push the schema to your PostgreSQL database, and seed the demo data. Copy your backend service URL (e.g. `https://ai-receptionist-backend.onrender.com`).
+
+---
+
+### 🌸 Step 3: Deploy the Frontend on Vercel
+
+1. Log in to the [Vercel Dashboard](https://vercel.com/) and click **Add New** > **Project**.
+2. Import your Git repository.
+3. Configure the Project settings:
+   - **Framework Preset**: `Vite`
+   - **Root Directory**: Keep it as the repository root (`.`). Vercel reads [`vercel.json`](file:///vercel.json) to locate the compiled bundle in `client/dist`.
+   - **Build Command**: `npm run build:client`
+   - **Output Directory**: `client/dist`
+4. Expand the **Environment Variables** section and add:
+
+| Key | Value | Description |
+| :--- | :--- | :--- |
+| `VITE_API_URL` | `https://ai-receptionist-backend.onrender.com/api` | The deployed Render backend endpoint. Make sure it ends in `/api`. |
+
+5. Click **Deploy**. Vercel will build the frontend client and host it at a custom URL (e.g. `https://ai-receptionist-frontend.vercel.app`).
+6. *Optional*: Copy this URL and update the `APP_URL` environment variable in your Render settings to lock down CORS access.
+
+---
+
+## Switching Database to PostgreSQL in Production (Manual Steps) 🔌
+
+If you need to sync the database schema manually at any time:
+
+1. Update the `datasource` block in [`schema.prisma`](file:///prisma/schema.prisma):
    ```prisma
    datasource db {
      provider = "postgresql"
      url      = env("DATABASE_URL")
    }
    ```
-2. Update the `DATABASE_URL` connection string in your `.env`:
-   ```env
-   DATABASE_URL="postgresql://user:password@localhost:5432/reception_ai?schema=public"
-   ```
+2. Update the `DATABASE_URL` connection string in your `.env`.
 3. Regenerate client and push database models:
    ```bash
    npx prisma generate
@@ -118,21 +193,21 @@ To transition the database from SQLite to PostgreSQL:
 ### 1. Voice Integration (e.g., Twilio)
 To connect a real voice telephone line using Twilio:
 1. Complete Twilio Console signup and buy a phone number.
-2. In your `.env`, fill:
+2. In your `.env` or Render environment settings, fill:
    ```env
    TWILIO_ACCOUNT_SID=your_account_sid
    TWILIO_AUTH_TOKEN=your_auth_token
    TWILIO_PHONE_NUMBER=your_purchased_phone_number
    ```
 3. Set your Twilio Phone Number's **Incoming Call Webhook** to point to:
-   `https://your-server-url.com/api/webhooks/voice-incoming`
-4. The backend voice router will accept incoming calls, generate TwiML voice xml responses, capture customer audio, run speech-to-text, query the receptionist `aiService`, and speak the generated reply.
+   `https://your-backend.onrender.com/api/webhooks/voice-incoming`
+4. The backend voice router will accept incoming calls, generate TwiML voice XML responses, capture customer audio, run speech-to-text, query the receptionist `aiService`, and speak the generated reply.
 
 ### 2. Messaging Integration (e.g., WhatsApp / Instagram / SMS)
 To wire up a messaging channel:
 1. Connect a WhatsApp Business API account or Facebook Messenger developer app.
 2. Configure webhook subscription topics to point to:
-   `https://your-server-url.com/api/webhooks/message-incoming`
+   `https://your-backend.onrender.com/api/webhooks/message-incoming`
 3. Parse the message body: extract `From` contact metadata and message text content.
 4. Call `messagingService.receiveMessage` with the payload fields to save the chat thread, trigger the AI responder, and push toast alerts to active dashboards.
 

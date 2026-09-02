@@ -19,9 +19,14 @@ class NotificationServiceImpl {
     });
   }
 
-  async getUnreadNotifications() {
+  async getUnreadNotifications(businessId: string) {
     return prisma.notification.findMany({
-      where: { isRead: false },
+      where: { 
+        isRead: false,
+        conversation: {
+          businessId,
+        },
+      },
       orderBy: { createdAt: 'desc' },
       include: {
         conversation: true
@@ -36,9 +41,14 @@ class NotificationServiceImpl {
     });
   }
 
-  async markAllAsRead() {
+  async markAllAsRead(businessId: string) {
     return prisma.notification.updateMany({
-      where: { isRead: false },
+      where: { 
+        isRead: false,
+        conversation: {
+          businessId,
+        },
+      },
       data: { isRead: true },
     });
   }

@@ -85,9 +85,9 @@ class AIServiceImpl {
     const urgencyCheck = await this.detectUrgency(currentMessage);
     if (urgencyCheck.urgency === 'urgent') {
       if (text.includes('charge') || text.includes('double') || text.includes('billing')) {
-        return `I understand your concern about the billing discrepancy. I've flagged this transaction as urgent and routed it to Dr. Bloom's billing desk. We will review our ledger immediately. Could you please confirm your email address so we can email you a receipt once resolved?`;
+        return `I understand your concern about the billing discrepancy. I've flagged this transaction as urgent and routed it to ${business.name}'s management desk. We will review our ledger immediately. Could you please confirm your email address so we can email you a receipt once resolved?`;
       }
-      return `I'm very sorry to hear that. This sounds like an emergency. I have flagged your message for our dental team and they will contact you immediately. If you have severe pain or bleeding, please apply firm pressure and keep your head elevated. If you feel dizzy, please seek emergency medical care.`;
+      return `I'm very sorry to hear that. This sounds like an urgent matter. I have flagged your message for the team at ${business.name} and they will contact you immediately. If you require immediate attention, please call our office directly.`;
     }
 
     // Look for name/email/phone capture flow

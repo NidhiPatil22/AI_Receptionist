@@ -11,8 +11,14 @@ export const AIReceptionistPage: React.FC = () => {
   const [messagingEnabled, setMessagingEnabled] = useState(true);
   const [autoAnswer, setAutoAnswer] = useState(true);
   const [humanEscalation, setHumanEscalation] = useState(true);
-  const [receptionistName, setReceptionistName] = useState('Bloomie');
-  const [businessName, setBusinessName] = useState('Bloom Dental Studio');
+  const [receptionistName, setReceptionistName] = useState(() => {
+    const biz = localStorage.getItem('reception_business');
+    return biz ? JSON.parse(biz).receptionistName || 'AI Receptionist' : 'AI Receptionist';
+  });
+  const [businessName, setBusinessName] = useState(() => {
+    const biz = localStorage.getItem('reception_business');
+    return biz ? JSON.parse(biz).name || '' : '';
+  });
 
   // Simulation states
   const [activeTab, setActiveTab] = useState<'chat' | 'call'>('chat');
@@ -47,8 +53,8 @@ export const AIReceptionistPage: React.FC = () => {
         setMessagingEnabled(biz.messagingEnabled ?? true);
         setAutoAnswer(biz.autoAnswer ?? true);
         setHumanEscalation(biz.humanEscalation ?? true);
-        setReceptionistName(biz.receptionistName || 'Bloomie');
-        setBusinessName(biz.name || 'Bloom Dental Studio');
+        setReceptionistName(biz.receptionistName || 'AI Receptionist');
+        setBusinessName(biz.name || '');
         setBusinessId(biz.id);
       } catch (err) {
         console.error('Failed to load receptionist configurations:', err);
